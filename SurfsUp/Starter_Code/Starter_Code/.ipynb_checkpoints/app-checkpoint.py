@@ -12,12 +12,12 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///../Resources/hawaii.sqlite")
-
-# reflect an existing database into a new model
+# Create engine using the `hawaii.sqlite` database file
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
+# Declare a Base using `automap_base()`
 Base = automap_base()
-# reflect the tables
-Base.prepare(engine, reflect=True)
+# Use the Base class to reflect the database tables
+Base.prepare(autoload_with=engine)
 
 # Save references to each table
 Station = Base.classes.station
@@ -38,8 +38,7 @@ app = Flask(__name__)
 #1
 @app.route("/")
 def welcome():
-"""List all available api routes."""
-return (
+    return (
         f"Welcome to the SQL-Alchemy APP API!<br/>"
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
@@ -64,37 +63,37 @@ def precipitation():
     return jsonify(prcp_dict) 
 
 
-prcp_dates = []
-prcp_totals = []
+    prcp_dates = []
+    prcp_totals = []
 
-for date, dailytotal in precipitation:
-    prcp_dates.append(date)
-    prcp_totals.append(dailytotal)
+    for date, dailytotal in precipitation:
+        prcp_dates.append(date)
+        prcp_totals.append(dailytotal)
     
-    prcp_dict = dict(zip(prcp_dates, prcp_totals))
+        prcp_dict = dict(zip(prcp_dates, prcp_totals))
 
-return jsonify(prcp_dict)
+    return jsonify(prcp_dict)
 
 #3
 @app.route("/api/v1.0/stations")
 def stations():
     stations_query = session.query(Station.name, Station.station)
     stations = pd.read_sql(stations_query.statement, stations_query.session.bind)
-return jsonify(stations.to_dict())
+    return jsonify(stations.to_dict())
 
 #4
 def tobs():
-session = Session(engine)
-queryresult = session.query( Measurement.date, Measurement.tobs).filter(Measurement.station=='USC00519281')\
-     .filter(Measurement.date>='2016-08-23').all()
+    session = Session(engine)
+    queryresult = session.query( Measurement.date, Measurement.tobs).filter(Measurement.station=='USC00519281')\
+         .filter(Measurement.date>='2016-08-23').all()
 
-tob = []
-for date, tobs in queryresult:
-    tobs_dict = {}
-    tobs_dict["Date"] = date
-    tobs_dict["Tobs"] = tobs
-    tob_obs.append(tobs_dict)
-return jsonify(tob)
+    tob = []
+    for date, tobs in queryresult:
+        tobs_dict = {}
+        tobs_dict["Date"] = date
+        tobs_dict["Tobs"] = tobs
+        tob_obs.append(tobs_dict)
+    return jsonify(tob)
 
 #5 start
 @app.route("/api/v1.0/<start>")
@@ -105,14 +104,14 @@ def temps_start(start):
               filter(Measurement.date >= start).all()
     session.close()
 
-tobs_values = []
-for min, avg, max in results:
-    tobs_dict = {}
-    tobs_dict["min_temp"] = min
-    tobs_dict["avg_temp"] = avg
-    tobs_dict["max_temp"] = max
-    tobs.append(tobs_dict) 
-return jsonify(tobs_values)
+    tobs_values = []
+    for min, avg, max in results:
+        tobs_dict = {}
+        tobs_dict["min_temp"] = min
+        tobs_dict["avg_temp"] = avg
+        tobs_dict["max_temp"] = max
+        tobs.append(tobs_dict) 
+    return jsonify(tobs_values)
 
 #5 end
 @app.route("/api/v1.0/<start>/<end>")
@@ -122,14 +121,14 @@ def temps_end(start, end):
               filter(Measurement.date >= start).filter(Measurement.date <= end).all()
     session.close()
 
-tobs_values = []
-for min, avg, max in results:
-    tobs_dict = {}
-    tobs_dict["min_temp"] = min
-    tobs_dict["avg_temp"] = avg
-    tobs_dict["max_temp"] = max
-    tobs.append(tobs_dict) 
-return jsonify(tobs_values)
+    tobs_values = []
+    for min, avg, max in results:
+        tobs_dict = {}
+        tobs_dict["min_temp"] = min
+        tobs_dict["avg_temp"] = avg
+        tobs_dict["max_temp"] = max
+        tobs.append(tobs_dict) 
+    return jsonify(tobs_values)
 
 if __name__ == "__main__":
     app.run(debug=True)
